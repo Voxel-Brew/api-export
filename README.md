@@ -1,13 +1,13 @@
 # Export API
 
-The `:api:export` project defines VoxelBrew's public exporter contracts
-under `dev.voxelbrew.exporter.api`. It depends only on `:api:model`, so plugins can
+The `dev.voxelbrew.api:export` project defines VoxelBrew's public exporter contracts
+under `dev.voxelbrew.exporter.api`. It depends only on `dev.voxelbrew.api:model`, so plugins can
 use document and manufacturing values without depending on JavaFX, CLI parsing or
 the native engine implementation.
 
 This guide explains how to write, package, install and validate your own exporter.
 For built-in formats, geometry helpers and the slicing pipeline, see the
-[export implementation module](../../export/README.md).
+[export implementation module](https://github.com/Voxel-Brew/VoxelBrew/tree/master/exporter).
 
 ## One export contract
 
@@ -38,7 +38,7 @@ java { toolchain.languageVersion.set(JavaLanguageVersion.of(21)) }
 
 val voxelbrewVersion = providers.gradleProperty("voxelbrewVersion").get()
 dependencies {
-    compileOnly("dev.voxelbrew:export-api:$voxelbrewVersion")
+    compileOnly("dev.voxelbrew.api:export:$voxelbrewVersion")
 }
 ```
 
@@ -246,3 +246,21 @@ a separate OCCT executable; the STEP reader uses the same kernel as the writer.
 These focused checks do not run full GUI E2E or qualify slicers/packaged applications.
 See [`fixtures/exporter-plugin`](../../fixtures/exporter-plugin) for the independent
 consumer build and [file I/O](../../docs/file-io.md) for wider module responsibilities.
+
+## Standalone build and publication
+
+Java 21 and the committed Gradle wrapper are required. Run `./gradlew check`
+(`.\gradlew.bat check` on Windows). This MIT library publishes as
+`dev.voxelbrew.api:export:0.1.0-SNAPSHOT`; Java package names remain unchanged.
+Use `./gradlew publishToMavenLocal` for local publication. Consumers opt in with
+`-PuseMavenLocal=true`. `publishApiPublicationToGitHubPackagesRepository` publishes remotely.
+
+GitHub Packages reads use `GITHUB_PACKAGES_USER` and `GITHUB_PACKAGES_TOKEN`
+(a classic token with read:packages), or user Gradle properties
+`githubPackagesUser` and `githubPackagesToken`. Publishing uses `GITHUB_ACTOR`
+and `GITHUB_TOKEN`. Never store credentials in this repository.
+
+The local workspace at `D:\repos\VoxelBrew` includes this checkout at `api/export`
+and substitutes API dependencies with local sources. API versions are independent
+of the application version. Pushes to master publish snapshots after checks;
+pull requests only verify. Fork PRs use checked-out public API sources for dependencies.
