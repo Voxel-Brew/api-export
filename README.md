@@ -45,10 +45,11 @@ dependencies {
 Publish the local API artifacts from the VoxelBrew repository root:
 
 ```text
-./gradlew :api:model:publishToMavenLocal :api:export:publishToMavenLocal
+./gradlew -p ../model publishToMavenLocal
+./gradlew publishToMavenLocal -PuseMavenLocal=true
 ```
 
-Then build the plugin with `./gradlew jar -PvoxelbrewVersion=<matching-host-version>`.
+Then build the plugin with `./gradlew jar -PvoxelbrewVersion=<api-version>`.
 On Windows use `gradlew.bat` instead of `./gradlew`. Do not bundle host API classes
 in the plugin JAR. An API-only exporter needs no JavaFX, picocli, Protobuf, Dagger,
 or native-pointer dependency. If your implementation needs native evaluation,
@@ -218,10 +219,10 @@ Windows. Plugins are trusted code running with the application's permissions.
 ### Adding a first-party exporter
 
 Put implementations in `impl/exporter` under `dev.voxelbrew.exporter`. Include each
-provider in the [`ExporterRegistry(Path)`](../../impl/exporter/src/main/java/dev/voxelbrew/exporter/ExporterRegistry.java) composition. Application
+provider in the [`ExporterRegistry(Path)`](https://github.com/Voxel-Brew/VoxelBrew/blob/master/exporter/src/main/java/dev/voxelbrew/exporter/ExporterRegistry.java) composition. Application
 CLI/window composition roots inject the registry factory through Dagger, including
 for slicing. No hardcoded GUI format entry or second service resource is needed.
-Follow the repository's [DI guidance](../../docs/dependency-injection.md); keep DI
+Follow the repository's [DI guidance](https://github.com/Voxel-Brew/VoxelBrew/blob/master/docs/dependency-injection.md); keep DI
 annotations out of API contracts.
 
 ## Validate an exporter
@@ -232,20 +233,20 @@ containing spaces. Use an independent reader to check real output: units, transf
 topology and measurements matter more than matching the writer's text. Geometry
 acceptance requires the real kernel; test doubles only cover failure handling.
 
-Run these focused commands from the repository root (use `.\gradlew.bat` on Windows):
+Run these focused commands from this API checkout (the application checkout is `../../VoxelBrew`) (use `.\gradlew.bat` on Windows):
 
 ```text
-./gradlew :engine:buildExporterFixture :api:export:test :impl:exporter:test
-./gradlew :impl:exporter:integrationTest --tests dev.voxelbrew.exporter.ExportTest --tests dev.voxelbrew.exporter.AdditionalFormatsTest --tests dev.voxelbrew.exporter.UnifiedExportTest --tests dev.voxelbrew.exporter.printing.SlicerExportPipelineTest
+./gradlew -p ../../VoxelBrew :engine:buildExporterFixture :exporter:test
+./gradlew -p ../../VoxelBrew :exporter:integrationTest --tests dev.voxelbrew.exporter.ExportTest --tests dev.voxelbrew.exporter.AdditionalFormatsTest --tests dev.voxelbrew.exporter.UnifiedExportTest --tests dev.voxelbrew.exporter.printing.SlicerExportPipelineTest
 ./gradlew spotlessApply
 ```
 
 The integration command needs the native prerequisites described in the
-[root README](../../README.md). It covers STL/3MF/OBJ readers and STEP read-back through
+[root README](https://github.com/Voxel-Brew/VoxelBrew/blob/master/README.md). It covers STL/3MF/OBJ readers and STEP read-back through
 a separate OCCT executable; the STEP reader uses the same kernel as the writer.
 These focused checks do not run full GUI E2E or qualify slicers/packaged applications.
-See [`fixtures/exporter-plugin`](../../fixtures/exporter-plugin) for the independent
-consumer build and [file I/O](../../docs/file-io.md) for wider module responsibilities.
+See [`fixtures/exporter-plugin`](https://github.com/Voxel-Brew/VoxelBrew/blob/master/fixtures/exporter-plugin) for the independent
+consumer build and [file I/O](https://github.com/Voxel-Brew/VoxelBrew/blob/master/docs/file-io.md) for wider module responsibilities.
 
 ## Standalone build and publication
 
