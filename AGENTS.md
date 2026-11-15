@@ -1,36 +1,50 @@
-# Export API instructions
+# Repository Guidelines
 
-- Own public exporter/runtime contracts, descriptors, typed dialogs and shared
-  export selection values. `ModelView` and `ManufacturingView` are implementation
-  helpers in VoxelBrew/exporter, not public contracts.
-- Preserve `Exporter<R>.export(CadDocument, ExportWindow)`: providers collect
-  confirmed settings through typed dialogs and return a future covering the full
-  operation. Do not introduce a second geometry-export SPI.
-- Depend only on api/model for CAD/manufacturing values; never depend on AGPL application modules. Keep STL/3MF formats, registries and file publication in VoxelBrew/exporter; slicer execution belongs in VoxelBrew/slicer.
-- Keep native handles, generated Protobuf, JavaFX, CLI parsing and DI annotations out of contracts.
-- Preserve source/binary compatibility deliberately; exporter descriptors contain
-  an ID and name, not an API-version field. Verify external consumption through
-  the independent provider fixture.
-- Do not bundle API classes inside plugin JARs. Document changes in the application repository docs/file-io.md.
+## Project Structure & Module Organization
 
-## Standalone repository
+This repository contains the standalone VoxelBrew Export API. Public Java contracts live in
+`src/main/java/dev/voxelbrew/exporter/api`; shared export values are in the parent
+`dev.voxelbrew.exporter` package. Version metadata belongs in `src/main/resources`. Unit tests use
+the nonstandard source root `src/test/test/java`; reserve `src/test/integrationTest` and
+`src/test/e2eTest` for their corresponding Gradle suites. Build logic is in `build.gradle.kts` and
+`gradle/*.gradle.kts`; quality configuration is under `config/quality`.
 
-- Use Java 21 and the committed Gradle wrapper. Preserve the MIT license and public Java packages.
-- Run `./gradlew spotlessApply` (Windows: `.\gradlew.bat spotlessApply`) before every commit, then review changes.
-- Run `check` and validate Maven POM dependencies when changing publication configuration.
-- Never add application-module dependencies or commit generated output or credentials.
+Keep this module API-only. It may depend on `dev.voxelbrew.api:model`, but must not expose JavaFX,
+CLI, native engine, Protobuf, or dependency-injection implementation types. Exporter
+implementations belong in the main VoxelBrew application repository.
 
-## Development and verification
+## Build, Test, and Development Commands
 
-- Read `README.md` and the build before changing contracts or publication.
-- Unit tests live in `src/test/test`; `integrationTest` covers service integration.
-  `check` also runs formatting, dependency checks, SpotBugs and release-script
-  tests; it does not automatically run the separate `e2eTest` task.
-- API versions are independent of the application. Preserve version properties;
-  local workspace composite builds substitute sibling API sources. Standalone
-  consumers opt into Maven local with `-PuseMavenLocal=true` after publishing
-  required dependencies.
-- Instruction-only edits need Spotless and diff review. In a dirty checkout,
-  scope formatting with `-PspotlessIdeHook=<comma-separated absolute paths>`.
-- Remote publication is separate from validation; do not publish or change release
-  versions merely to test a change.
+Java 21 and the committed Gradle wrapper are required.
+
+- `./gradlew test` runs the JUnit unit suite.
+- `./gradlew check` runs unit and integration tests, Spotless checks, SpotBugs, dependency-boundary
+  validation, and release-script tests.
+- `./gradlew e2eTest` runs the separate end-to-end suite when one is present.
+- `./gradlew spotlessApply` formats Java, Kotlin Gradle scripts, Markdown, YAML, and text files.
+- `./gradlew publishToMavenLocal -PuseMavenLocal=true` publishes a local artifact for consumer
+  testing after the BOM and model API are available locally.
+
+On Windows, replace `./gradlew` with `gradlew.bat`.
+
+## Coding Style & Naming Conventions
+
+Spotless enforces Palantir Java Format and ktfmt; do not hand-align code against those tools. Use
+UTF-8, four-space Java indentation, `UpperCamelCase` types, `lowerCamelCase` members, and lowercase
+package names. Compilation uses `-Xlint:all -Werror`, so resolve every warning. Preserve public API
+compatibility deliberately and document behavioral contracts with concise Javadoc.
+
+## Testing Guidelines
+
+Tests use JUnit 5. Name test classes `*Test` and methods after observable behavior, for example
+`unsupportedDialogsAndDuplicateHandlersFailExplicitly`. Add unit coverage for contract behavior and
+integration coverage for service discovery or external consumption. No numeric coverage threshold
+is configured; test success, cancellation, invalid input, and failure propagation.
+
+## Commit & Pull Request Guidelines
+
+Recent commits use short, imperative subjects, optionally prefixed by scope (`docs:`, `build:`,
+`ci:`). Keep commits focused. Pull requests should explain API and compatibility impact, link the
+relevant issue, list verification commands, and update README examples when contracts change.
+Screenshots are only needed for documentation or rendered-output changes. Never commit generated
+`build/` output, credentials, signing material, or local plugin artifacts.
