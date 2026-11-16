@@ -1,0 +1,23 @@
+package dev.voxelbrew.api.exporter;
+
+import dev.voxelbrew.api.exporter.component.ExportDialogLayout;
+import java.util.Map;
+
+/** Frontend-neutral description of an exporter interaction. */
+public interface ExportDialog<R> {
+    /** Human-readable dialog title. */
+    String title();
+
+    /** Controls and their arrangement, interpreted by the frontend. */
+    ExportDialogLayout layout();
+
+    /**
+     * Checks the supplied values, which may be incomplete while a host gathers input. Returns all
+     * expected errors keyed by {@link dev.voxelbrew.api.exporter.component.ExportDialogInput#id()},
+     * or an empty map when valid. Each message should explain how to correct the value.
+     */
+    Map<String, String> validate(Map<String, String> values);
+
+    /** Converts frontend input values, keyed by component ID, into accepted settings. */
+    R buildSettings(Map<String, String> values);
+}

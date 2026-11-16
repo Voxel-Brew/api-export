@@ -31,6 +31,7 @@ apply(from = "gradle/lombok.gradle.kts")
 
 dependencies {
     api(platform("dev.voxelbrew:bom:${providers.gradleProperty("bomVersion").get()}"))
+    implementation("org.slf4j:slf4j-api")
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
