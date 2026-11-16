@@ -1,0 +1,44 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName DejaVu Sans
+skinparam defaultFontColor #1B2838
+skinparam sequenceParticipantBackgroundColor #EAF2FC
+skinparam sequenceParticipantBorderColor #6A87A8
+skinparam sequenceArrowColor #496782
+skinparam sequenceLifeLineBorderColor #AFC2D8
+skinparam shadowing false
+
+actor User
+participant "VoxelBrew host\n(GUI or CLI)" as Host
+participant "ExporterProviderRegistry" as Registry
+participant "ExporterProvider" as Provider
+participant "Exporter" as Exporter
+participant "ExportWindow" as Window
+participant "Host worker" as Worker
+
+User -> Host: Select exporter ID
+Host -> Registry: require(id)
+Registry --> Host: provider
+Host -> Provider: create(pluginDirectory)
+Provider --> Host: exporter
+Host -> Worker: Run export(document, window)
+Worker -> Exporter: export(document, window)
+Exporter -> Window: show(dialog)
+Window -> Host: Dispatch dialog to UI thread
+Host -> User: Render layout / request values
+alt Cancelled
+    User --> Host: Dismiss
+    Host --> Window: Optional.empty()
+    Window --> Exporter: Optional.empty()
+    Exporter --> Worker: Optional.empty()
+    Worker --> Host: cancelled
+else Accepted
+    User --> Host: Confirm values
+    Host --> Window: accepted values
+    Window -> Window: buildSettings(values)
+    Window --> Exporter: accepted settings
+    Exporter -> Exporter: Convert and publish
+    Exporter --> Worker: Optional.of(settings) or exception
+    Worker --> Host: completed or failed
+end
+@enduml

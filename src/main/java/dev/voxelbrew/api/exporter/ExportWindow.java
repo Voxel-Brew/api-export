@@ -1,4 +1,4 @@
-package dev.voxelbrew.exporter.api;
+package dev.voxelbrew.api.exporter;
 
 import java.util.Optional;
 
@@ -10,22 +10,19 @@ import java.util.Optional;
  * exporter contract. Implementations decide which request types they support and must document any
  * thread restrictions. This interface does not assume a file destination.
  *
- * @see ExportDialogs
  */
 public interface ExportWindow {
     /**
      * Resolves an exporter-defined request synchronously, returning only after confirmation or
      * cancellation.
      *
-     * <p>Hosts must invoke {@link ExportDialog#collectSettings(java.util.function.Supplier)} around
-     * the whole interaction so that {@link ExportDialog#getSettings()} exposes only newly confirmed
-     * settings. Return an empty optional for cancellation, not for an unsupported request or invalid
+     * <p>Return an empty optional for cancellation, not for an unsupported request or invalid
      * settings. Unsupported requests must fail explicitly; validation failures must be corrected or
-     * reported to the caller. {@link ExportDialogs} provides the lifecycle and request dispatch.
+     * reported to the caller.
      *
      * @param <R> accepted settings type
      * @param dialog request to resolve; must not be {@code null}
-     * @return accepted settings, also recorded on the dialog, or empty on cancellation
+     * @return accepted settings, or empty on cancellation
      * @throws UnsupportedOperationException if this host cannot handle the dialog type
      */
     <R> Optional<R> show(ExportDialog<R> dialog);

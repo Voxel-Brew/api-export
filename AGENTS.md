@@ -3,8 +3,7 @@
 ## Project Structure & Module Organization
 
 This repository contains the standalone VoxelBrew Export API. Public Java contracts live in
-`src/main/java/dev/voxelbrew/exporter/api`; shared export values are in the parent
-`dev.voxelbrew.exporter` package. Version metadata belongs in `src/main/resources`. Unit tests use
+`src/main/java/dev/voxelbrew/api/exporter`. Version metadata belongs in `src/main/resources`. Unit tests use
 the nonstandard source root `src/test/test/java`; reserve `src/test/integrationTest` and
 `src/test/e2eTest` for their corresponding Gradle suites. Build logic is in `build.gradle.kts` and
 `gradle/*.gradle.kts`; quality configuration is under `config/quality`.
