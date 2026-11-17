@@ -1,6 +1,6 @@
 package dev.voxelbrew.api.exporter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,10 +32,8 @@ class ServiceLoaderExporterProviderRegistryIntegrationTest {
                 """);
         Path classes = Files.createDirectories(directory.resolve("classes"));
         var compiler = ToolProvider.getSystemJavaCompiler();
-        assertNotNull(compiler, "Tests require a JDK");
-        assertEquals(
-                0,
-                compiler.run(
+        assertThat(compiler).as("Tests require a JDK").isNotNull();
+        assertThat(compiler.run(
                         null,
                         null,
                         null,
@@ -43,7 +41,8 @@ class ServiceLoaderExporterProviderRegistryIntegrationTest {
                         System.getProperty("java.class.path"),
                         "-d",
                         classes.toString(),
-                        source.toString()));
+                        source.toString()))
+                .isZero();
 
         Path plugins = Files.createDirectories(directory.resolve("plugins"));
         Path jar = plugins.resolve("installed.jar");
@@ -58,12 +57,13 @@ class ServiceLoaderExporterProviderRegistryIntegrationTest {
 
         try (var registry = new ServiceLoaderExporterProviderRegistry(plugins)) {
             var provider = registry.require("installed");
-            assertEquals("Installed", provider.descriptor().name());
-            assertEquals("1.2", provider.descriptor().version());
-            assertNotSame(getClass().getClassLoader(), provider.getClass().getClassLoader());
-            assertNotNull(provider.create());
+            assertThat(provider.descriptor().name()).isEqualTo("Installed");
+            assertThat(provider.descriptor().version()).isEqualTo("1.2");
+            assertThat(provider.getClass().getClassLoader())
+                    .isNotSameAs(getClass().getClassLoader());
+            assertThat(provider.create()).isNotNull();
         }
         Files.delete(jar);
-        assertFalse(Files.exists(jar));
+        assertThat(jar).doesNotExist();
     }
 }

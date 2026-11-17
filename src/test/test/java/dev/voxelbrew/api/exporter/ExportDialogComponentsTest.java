@@ -1,6 +1,6 @@
 package dev.voxelbrew.api.exporter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import dev.voxelbrew.api.exporter.component.*;
 import java.util.ArrayList;
@@ -16,11 +16,11 @@ class ExportDialogComponentsTest {
         var column = new VerticalLayout(row, new Separator(), new Label("Done"));
         children.clear();
 
-        assertEquals(1, row.children().size());
-        assertEquals(3, column.children().size());
-        assertSame(row, column.children().getFirst());
-        assertThrows(UnsupportedOperationException.class, () -> row.children().clear());
-        assertThrows(NullPointerException.class, () -> new VerticalLayout(new Label("ok"), null));
+        assertThat(row.children()).hasSize(1);
+        assertThat(column.children()).hasSize(3);
+        assertThat(column.children().getFirst()).isSameAs(row);
+        assertThatThrownBy(() -> row.children().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> new VerticalLayout(new Label("ok"), null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -28,19 +28,20 @@ class ExportDialogComponentsTest {
         var choices = new ArrayList<>(List.of("draft", "final"));
         var radio = new RadioButtonGroup("stage", "Stage", choices, "draft");
         choices.add("archived");
-        assertEquals(List.of("draft", "final"), radio.choices());
-        assertThrows(UnsupportedOperationException.class, () -> radio.choices().clear());
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> new RadioButtonGroup("stage", "Stage", List.of("draft"), "final"));
-        assertThrows(IllegalArgumentException.class, () -> new ComboBox("stage", "Stage", List.of(), "draft"));
+        assertThat(radio.choices()).containsExactly("draft", "final");
+        assertThatThrownBy(() -> radio.choices().clear()).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> new RadioButtonGroup("stage", "Stage", List.of("draft"), "final"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new ComboBox("stage", "Stage", List.of(), "draft"))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void sliderRejectsNonFiniteOrOutOfRangeValues() {
-        assertThrows(IllegalArgumentException.class, () -> new Slider("scale", "Scale", 0, 1, Double.NaN));
-        assertThrows(IllegalArgumentException.class, () -> new Slider("scale", "Scale", 1, 1, 1));
-        assertThrows(IllegalArgumentException.class, () -> new Slider("scale", "Scale", 0, 1, -0.1));
-        assertEquals(0.5, new Slider("scale", "Scale", 0, 1, 0.5).value());
+        assertThatThrownBy(() -> new Slider("scale", "Scale", 0, 1, Double.NaN))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Slider("scale", "Scale", 1, 1, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Slider("scale", "Scale", 0, 1, -0.1)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(new Slider("scale", "Scale", 0, 1, 0.5).value()).isEqualTo(0.5);
     }
 }

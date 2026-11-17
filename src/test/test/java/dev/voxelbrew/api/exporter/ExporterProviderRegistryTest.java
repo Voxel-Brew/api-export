@@ -1,6 +1,6 @@
 package dev.voxelbrew.api.exporter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,20 +43,19 @@ class ExporterProviderRegistryTest {
     void discoversEveryRegisteredClasspathService() throws Exception {
         var registry =
                 ServiceLoader.load(ExporterProviderRegistry.class).findFirst().orElseThrow();
-        assertInstanceOf(ServiceLoaderExporterProviderRegistry.class, registry);
-        assertEquals(
-                List.of("first", "second"),
-                registry.descriptors().stream().map(ExporterDescriptor::id).toList());
-        assertInstanceOf(FirstProvider.class, registry.require("first"));
-        assertEquals("1.0.0", registry.require("first").descriptor().version());
-        assertInstanceOf(SecondProvider.class, registry.require("second"));
+        assertThat(registry).isInstanceOf(ServiceLoaderExporterProviderRegistry.class);
+        assertThat(registry.descriptors().stream().map(ExporterDescriptor::id).toList())
+                .containsExactly("first", "second");
+        assertThat(registry.require("first")).isInstanceOf(FirstProvider.class);
+        assertThat(registry.require("first").descriptor().version()).isEqualTo("1.0.0");
+        assertThat(registry.require("second")).isInstanceOf(SecondProvider.class);
     }
 
     @Test
     void reusesLoadedProvidersAcrossLookups() {
         var registry =
                 ServiceLoader.load(ExporterProviderRegistry.class).findFirst().orElseThrow();
-        assertSame(registry.require("first"), registry.require("first"));
+        assertThat(registry.require("first")).isSameAs(registry.require("first"));
     }
 
     @Test
@@ -65,10 +64,11 @@ class ExporterProviderRegistryTest {
                 .findFirst()
                 .orElseThrow()
                 .withDirectory(plugins)) {
-            assertEquals("First", registry.require("first").descriptor().name());
-            assertEquals(
-                    List.of("first", "second"),
-                    registry.descriptors().stream().map(ExporterDescriptor::id).toList());
+            assertThat(registry.require("first").descriptor().name()).isEqualTo("First");
+            assertThat(registry.descriptors().stream()
+                            .map(ExporterDescriptor::id)
+                            .toList())
+                    .containsExactly("first", "second");
         }
     }
 
@@ -76,27 +76,27 @@ class ExporterProviderRegistryTest {
     void suppliedProviderWinsDuplicateIdAndDescriptorsAreReadOnly() throws Exception {
         var supplied = new FirstProvider();
         try (var registry = new ServiceLoaderExporterProviderRegistry(plugins, List.of(supplied))) {
-            assertSame(supplied, registry.require("first"));
-            assertEquals(
-                    List.of("first", "second"),
-                    registry.descriptors().stream().map(ExporterDescriptor::id).toList());
-            assertThrows(
-                    UnsupportedOperationException.class,
-                    () -> registry.descriptors().clear());
-            assertTrue(assertThrows(IllegalArgumentException.class, () -> registry.require("missing"))
-                    .getMessage()
-                    .contains("first"));
+            assertThat(registry.require("first")).isSameAs(supplied);
+            assertThat(registry.descriptors().stream()
+                            .map(ExporterDescriptor::id)
+                            .toList())
+                    .containsExactly("first", "second");
+            assertThatThrownBy(() -> registry.descriptors().clear()).isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(() -> registry.require("missing"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("first");
         }
     }
 
     @Test
     void rejectsNonDirectoryPluginPathAndCannotReconfigureAfterClose() throws Exception {
         var file = Files.writeString(plugins.resolve("not-a-directory"), "contents");
-        assertThrows(IOException.class, () -> new ServiceLoaderExporterProviderRegistry(file));
+        assertThatThrownBy(() -> new ServiceLoaderExporterProviderRegistry(file))
+                .isInstanceOf(IOException.class);
 
         var registry = new ServiceLoaderExporterProviderRegistry();
         registry.close();
-        assertDoesNotThrow(registry::close);
-        assertThrows(IllegalStateException.class, () -> registry.withDirectory(plugins));
+        assertThatCode(registry::close).doesNotThrowAnyException();
+        assertThatThrownBy(() -> registry.withDirectory(plugins)).isInstanceOf(IllegalStateException.class);
     }
 }

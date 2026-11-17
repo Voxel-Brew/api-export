@@ -35,7 +35,9 @@ compatibility deliberately and document behavioral contracts with concise Javado
 
 ## Testing Guidelines
 
-Tests use JUnit 5. Name test classes `*Test` and methods after observable behavior, for example
+Tests use JUnit 5 for execution and AssertJ for assertions. Prefer `assertThat` and
+`assertThatThrownBy` over JUnit assertion methods, and assert observable behavior rather than
+implementation details. Name test classes `*Test` and methods after observable behavior, for example
 `unsupportedDialogsAndDuplicateHandlersFailExplicitly`. Add unit coverage for contract behavior and
 integration coverage for service discovery or external consumption. No numeric coverage threshold
 is configured; test success, cancellation, invalid input, and failure propagation.
