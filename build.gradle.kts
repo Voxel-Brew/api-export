@@ -33,7 +33,7 @@ dependencies {
     api(platform("dev.voxelbrew:bom:${providers.gradleProperty("bomVersion").get()}"))
     implementation("org.slf4j:slf4j-api")
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.27.7")
+    testImplementation("org.assertj:assertj-core")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
