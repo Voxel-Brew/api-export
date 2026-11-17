@@ -1,6 +1,6 @@
 package dev.voxelbrew.api.exporter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import dev.voxelbrew.api.exporter.component.ComboBox;
 import dev.voxelbrew.api.exporter.component.FileDestination;
@@ -21,11 +21,11 @@ class ExportDialogTest {
         var layout = new VerticalLayout(
                 new RadioButtonGroup("project", "Project", List.of("team", "personal"), "team"),
                 new FileDestination("destination", "txt"));
-        assertEquals(2, layout.children().size());
-        assertEquals("project", ((RadioButtonGroup) layout.children().getFirst()).id());
-        assertNull(((FileDestination) layout.children().get(1)).defaultPath());
-        assertEquals(
-                Path.of("report.txt"), new FileDestination("destination", "txt", Path.of("report.txt")).defaultPath());
+        assertThat(layout.children()).hasSize(2);
+        assertThat(((RadioButtonGroup) layout.children().getFirst()).id()).isEqualTo("project");
+        assertThat(((FileDestination) layout.children().get(1)).defaultPath()).isNull();
+        assertThat(new FileDestination("destination", "txt", Path.of("report.txt")).defaultPath())
+                .isEqualTo(Path.of("report.txt"));
     }
 
     @Test
@@ -33,10 +33,10 @@ class ExportDialogTest {
         var choices = new java.util.ArrayList<>(List.of("draft", "final"));
         var combo = new ComboBox("quality", "Quality", choices, "draft");
         choices.add("other");
-        assertEquals(List.of("draft", "final"), combo.choices());
-        assertThrows(
-                IllegalArgumentException.class, () -> new ComboBox("quality", "Quality", List.of("draft"), "missing"));
-        assertThrows(IllegalArgumentException.class, () -> new Slider("scale", "Scale", 0, 1, 2));
+        assertThat(combo.choices()).containsExactly("draft", "final");
+        assertThatThrownBy(() -> new ComboBox("quality", "Quality", List.of("draft"), "missing"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new Slider("scale", "Scale", 0, 1, 2)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -44,10 +44,12 @@ class ExportDialogTest {
         var dialog = new FileExportDialog("Report", "txt");
         var errors = dialog.validate(Map.of("destination", "", "overwrite", "maybe"));
 
-        assertEquals("Choose a destination", errors.get("destination"));
-        assertEquals("Overwrite must be true or false", errors.get("overwrite"));
-        assertEquals(2, errors.size());
-        assertThrows(IllegalArgumentException.class, () -> dialog.buildSettings(Map.of("destination", "")));
+        assertThat(errors)
+                .containsEntry("destination", "Choose a destination")
+                .containsEntry("overwrite", "Overwrite must be true or false")
+                .hasSize(2);
+        assertThatThrownBy(() -> dialog.buildSettings(Map.of("destination", "")))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -56,26 +58,29 @@ class ExportDialogTest {
         var dialog = new FileExportDialog("Report", "txt");
         var withoutConsent = Map.of("destination", path.toString(), "overwrite", "false");
 
-        assertEquals(
-                Map.of("destination", "Destination already exists; enable Overwrite"), dialog.validate(withoutConsent));
-        assertEquals(
-                Map.of("destination", "Destination already exists; enable Overwrite"),
-                dialog.validate(Map.of("destination", path.toString())));
-        assertThrows(IllegalArgumentException.class, () -> dialog.buildSettings(withoutConsent));
-        assertEquals(Map.of(), dialog.validate(Map.of("destination", path.toString(), "overwrite", "true")));
-        assertEquals(
-                new FileExportDialog.Destination(path, true),
-                dialog.buildSettings(Map.of("destination", path.toString(), "overwrite", "true")));
-        assertTrue(dialog.validate(Map.of("destination", "bad\u0000path", "overwrite", "true"))
-                .containsKey("destination"));
+        assertThat(dialog.validate(withoutConsent))
+                .containsExactlyInAnyOrderEntriesOf(
+                        Map.of("destination", "Destination already exists; enable Overwrite"));
+        assertThat(dialog.validate(Map.of("destination", path.toString())))
+                .containsExactlyInAnyOrderEntriesOf(
+                        Map.of("destination", "Destination already exists; enable Overwrite"));
+        assertThatThrownBy(() -> dialog.buildSettings(withoutConsent)).isInstanceOf(IllegalArgumentException.class);
+        assertThat(dialog.validate(Map.of("destination", path.toString(), "overwrite", "true")))
+                .isEmpty();
+        assertThat(dialog.buildSettings(Map.of("destination", path.toString(), "overwrite", "true")))
+                .isEqualTo(new FileExportDialog.Destination(path, true));
+        assertThat(dialog.validate(Map.of("destination", "bad\u0000path", "overwrite", "true")))
+                .containsKey("destination");
     }
 
     @Test
     void fileDialogRejectsInvalidConfiguration() {
-        assertThrows(NullPointerException.class, () -> new FileExportDialog(null, "txt"));
-        assertThrows(IllegalArgumentException.class, () -> new FileExportDialog("Report", "bad extension"));
-        assertEquals("gcode.3mf", new FileExportDialog("Report", "gcode.3mf").extension());
-        assertThrows(NullPointerException.class, () -> new FileExportDialog.Destination(null, false));
+        assertThatThrownBy(() -> new FileExportDialog(null, "txt")).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> new FileExportDialog("Report", "bad extension"))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(new FileExportDialog("Report", "gcode.3mf").extension()).isEqualTo("gcode.3mf");
+        assertThatThrownBy(() -> new FileExportDialog.Destination(null, false))
+                .isInstanceOf(NullPointerException.class);
     }
 
     @Test
@@ -87,40 +92,32 @@ class ExportDialogTest {
                 layout.children().get(1);
         var path = directory.resolve("new.txt");
 
-        assertSame(
-                destinationInput, ((VerticalLayout) dialog.layout()).children().get(0));
-        assertSame(overwriteInput, ((VerticalLayout) dialog.layout()).children().get(1));
-        assertSame(destinationInput, dialog.destinationInput());
-        assertSame(overwriteInput, dialog.overwriteInput());
-        assertEquals("destination", destinationInput.id());
-        assertEquals("overwrite", overwriteInput.id());
-        assertFalse(overwriteInput.selected());
-        assertEquals(
-                new FileExportDialog.Destination(path, false),
-                dialog.buildSettings(Map.of(destinationInput.id(), path.toString())));
+        assertThat(((VerticalLayout) dialog.layout()).children().get(0)).isSameAs(destinationInput);
+        assertThat(((VerticalLayout) dialog.layout()).children().get(1)).isSameAs(overwriteInput);
+        assertThat(dialog.destinationInput()).isSameAs(destinationInput);
+        assertThat(dialog.overwriteInput()).isSameAs(overwriteInput);
+        assertThat(destinationInput.id()).isEqualTo("destination");
+        assertThat(overwriteInput.id()).isEqualTo("overwrite");
+        assertThat(overwriteInput.selected()).isFalse();
+        assertThat(dialog.buildSettings(Map.of(destinationInput.id(), path.toString())))
+                .isEqualTo(new FileExportDialog.Destination(path, false));
     }
 
     @Test
     void fileDialogValidatesDirectoryAndParent(@TempDir Path directory) throws Exception {
         var dialog = new FileExportDialog("Report", "txt");
 
-        assertEquals(
-                "Destination must be a file, not a directory",
-                dialog.validate(Map.of("destination", directory.toString())).get("destination"));
-        assertEquals(
-                "Destination parent directory does not exist",
-                dialog.validate(Map.of(
-                                "destination",
-                                directory.resolve("missing/report.txt").toString()))
-                        .get("destination"));
+        assertThat(dialog.validate(Map.of("destination", directory.toString())))
+                .containsEntry("destination", "Destination must be a file, not a directory");
+        assertThat(dialog.validate(Map.of(
+                        "destination", directory.resolve("missing/report.txt").toString())))
+                .containsEntry("destination", "Destination parent directory does not exist");
         var parentFile = directory.resolve("parent.txt");
         Files.writeString(parentFile, "contents");
-        assertEquals(
-                "Destination parent must be a directory",
-                dialog.validate(Map.of(
-                                "destination", parentFile.resolve("report.txt").toString()))
-                        .get("destination"));
+        assertThat(dialog.validate(
+                        Map.of("destination", parentFile.resolve("report.txt").toString())))
+                .containsEntry("destination", "Destination parent must be a directory");
         var relative = Path.of("file-export-" + UUID.randomUUID() + ".txt");
-        assertEquals(Map.of(), dialog.validate(Map.of("destination", relative.toString())));
+        assertThat(dialog.validate(Map.of("destination", relative.toString()))).isEmpty();
     }
 }
