@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import lombok.Getter;
 
 /**
@@ -37,8 +36,11 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
     @Getter
     private final String extension;
 
-    protected final FileDestination destinationInput;
-    protected final CheckBox overwriteInput;
+    @Getter
+    private final FileDestination destinationInput;
+
+    @Getter
+    private final CheckBox overwriteInput;
 
     /**
      * Creates a file request; no filesystem access or dialog interaction occurs here.
@@ -79,6 +81,8 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
                     errors.put(destinationInput.id(), "Destination must be a file, not a directory");
                 } else if (parent == null || !Files.exists(parent)) {
                     errors.put(destinationInput.id(), "Destination parent directory does not exist");
+                } else if (!Files.isDirectory(parent)) {
+                    errors.put(destinationInput.id(), "Destination parent must be a directory");
                 } else if (!Files.isWritable(parent)) {
                     errors.put(destinationInput.id(), "Destination parent directory is not writable");
                 } else if ("false".equals(overwrite) && Files.exists(destination)) {
@@ -125,35 +129,5 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
         public Destination {
             Objects.requireNonNull(path, "path");
         }
-    }
-
-    /**
-     * Creates a headless host that always confirms this destination for file requests.
-     *
-     * <p>Useful for parsed CLI arguments and tests. The host supports only {@link FileExportDialog};
-     * other request types fail explicitly. It does not show a prompt or append an extension.
-     * Validation rejects an existing destination without overwrite consent.
-     *
-     * @param path      destination to return for every file request
-     * @param overwrite explicit replacement policy
-     * @return host that records and returns the supplied destination on confirmation
-     * @throws NullPointerException if the path is null
-     */
-    public static ExportWindow destination(Path path, boolean overwrite) {
-        var selected = new Destination(path, overwrite);
-        return new ExportWindow() {
-            @Override
-            public <R> Optional<R> show(ExportDialog<R> dialog) {
-                if (!(dialog instanceof FileExportDialog fileDialog))
-                    throw new UnsupportedOperationException(
-                            "Unsupported export dialog: " + dialog.getClass().getName());
-                var values = Map.of(
-                        fileDialog.destinationInput.id(), selected.path().toString(),
-                        fileDialog.overwriteInput.id(), Boolean.toString(selected.overwrite()));
-                var errors = dialog.validate(values);
-                if (!errors.isEmpty()) throw new IllegalArgumentException(String.join("; ", errors.values()));
-                return Optional.of(dialog.buildSettings(values));
-            }
-        };
     }
 }

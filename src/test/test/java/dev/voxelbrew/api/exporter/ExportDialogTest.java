@@ -63,8 +63,19 @@ class ExportDialogTest {
                 dialog.validate(Map.of("destination", path.toString())));
         assertThrows(IllegalArgumentException.class, () -> dialog.buildSettings(withoutConsent));
         assertEquals(Map.of(), dialog.validate(Map.of("destination", path.toString(), "overwrite", "true")));
+        assertEquals(
+                new FileExportDialog.Destination(path, true),
+                dialog.buildSettings(Map.of("destination", path.toString(), "overwrite", "true")));
         assertTrue(dialog.validate(Map.of("destination", "bad\u0000path", "overwrite", "true"))
                 .containsKey("destination"));
+    }
+
+    @Test
+    void fileDialogRejectsInvalidConfiguration() {
+        assertThrows(NullPointerException.class, () -> new FileExportDialog(null, "txt"));
+        assertThrows(IllegalArgumentException.class, () -> new FileExportDialog("Report", "bad extension"));
+        assertEquals("gcode.3mf", new FileExportDialog("Report", "gcode.3mf").extension());
+        assertThrows(NullPointerException.class, () -> new FileExportDialog.Destination(null, false));
     }
 
     @Test
@@ -79,6 +90,8 @@ class ExportDialogTest {
         assertSame(
                 destinationInput, ((VerticalLayout) dialog.layout()).children().get(0));
         assertSame(overwriteInput, ((VerticalLayout) dialog.layout()).children().get(1));
+        assertSame(destinationInput, dialog.destinationInput());
+        assertSame(overwriteInput, dialog.overwriteInput());
         assertEquals("destination", destinationInput.id());
         assertEquals("overwrite", overwriteInput.id());
         assertFalse(overwriteInput.selected());
@@ -88,7 +101,7 @@ class ExportDialogTest {
     }
 
     @Test
-    void fileDialogValidatesDirectoryAndParent(@TempDir Path directory) {
+    void fileDialogValidatesDirectoryAndParent(@TempDir Path directory) throws Exception {
         var dialog = new FileExportDialog("Report", "txt");
 
         assertEquals(
@@ -100,39 +113,14 @@ class ExportDialogTest {
                                 "destination",
                                 directory.resolve("missing/report.txt").toString()))
                         .get("destination"));
+        var parentFile = directory.resolve("parent.txt");
+        Files.writeString(parentFile, "contents");
+        assertEquals(
+                "Destination parent must be a directory",
+                dialog.validate(Map.of(
+                                "destination", parentFile.resolve("report.txt").toString()))
+                        .get("destination"));
         var relative = Path.of("file-export-" + UUID.randomUUID() + ".txt");
         assertEquals(Map.of(), dialog.validate(Map.of("destination", relative.toString())));
-    }
-
-    @Test
-    void destinationHostUsesDialogSettings() {
-        var path = Path.of("report.txt");
-        var window = FileExportDialog.destination(path, true);
-        assertEquals(
-                new FileExportDialog.Destination(path, true),
-                window.show(new FileExportDialog("Report", "txt")).orElseThrow());
-        assertThrows(
-                UnsupportedOperationException.class,
-                () -> window.show(new ExportDialog<Map<String, String>>() {
-                    @Override
-                    public String title() {
-                        return "Other";
-                    }
-
-                    @Override
-                    public dev.voxelbrew.api.exporter.component.ExportDialogLayout layout() {
-                        return new VerticalLayout();
-                    }
-
-                    @Override
-                    public Map<String, String> buildSettings(Map<String, String> values) {
-                        return values;
-                    }
-
-                    @Override
-                    public Map<String, String> validate(Map<String, String> values) {
-                        return Map.of();
-                    }
-                }));
     }
 }
