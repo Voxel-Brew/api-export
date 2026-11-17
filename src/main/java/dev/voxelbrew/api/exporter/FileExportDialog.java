@@ -1,9 +1,9 @@
 package dev.voxelbrew.api.exporter;
 
-import dev.voxelbrew.api.exporter.component.CheckBox;
-import dev.voxelbrew.api.exporter.component.ExportDialogLayout;
-import dev.voxelbrew.api.exporter.component.FileDestination;
-import dev.voxelbrew.api.exporter.component.VerticalLayout;
+import dev.voxelbrew.api.vui.CheckBox;
+import dev.voxelbrew.api.vui.FileDestination;
+import dev.voxelbrew.api.vui.Layout;
+import dev.voxelbrew.api.vui.VerticalLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -60,7 +60,7 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
     }
 
     @Override
-    public ExportDialogLayout layout() {
+    public Layout layout() {
         return new VerticalLayout(destinationInput, overwriteInput);
     }
 
