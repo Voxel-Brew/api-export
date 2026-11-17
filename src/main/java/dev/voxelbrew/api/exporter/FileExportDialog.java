@@ -1,9 +1,9 @@
 package dev.voxelbrew.api.exporter;
 
-import dev.voxelbrew.api.vui.CheckBox;
-import dev.voxelbrew.api.vui.FileDestination;
-import dev.voxelbrew.api.vui.Layout;
-import dev.voxelbrew.api.vui.VerticalLayout;
+import dev.voxelbrew.api.model.vui.CheckBox;
+import dev.voxelbrew.api.model.vui.FileDestination;
+import dev.voxelbrew.api.model.vui.Layout;
+import dev.voxelbrew.api.model.vui.VerticalLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;

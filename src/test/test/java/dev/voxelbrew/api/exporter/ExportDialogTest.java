@@ -2,11 +2,11 @@ package dev.voxelbrew.api.exporter;
 
 import static org.assertj.core.api.Assertions.*;
 
-import dev.voxelbrew.api.vui.ComboBox;
-import dev.voxelbrew.api.vui.FileDestination;
-import dev.voxelbrew.api.vui.RadioButtonGroup;
-import dev.voxelbrew.api.vui.Slider;
-import dev.voxelbrew.api.vui.VerticalLayout;
+import dev.voxelbrew.api.model.vui.ComboBox;
+import dev.voxelbrew.api.model.vui.FileDestination;
+import dev.voxelbrew.api.model.vui.RadioButtonGroup;
+import dev.voxelbrew.api.model.vui.Slider;
+import dev.voxelbrew.api.model.vui.VerticalLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -88,7 +88,8 @@ class ExportDialogTest {
         var dialog = new FileExportDialog("Report", "txt");
         var layout = (VerticalLayout) dialog.layout();
         var destinationInput = (FileDestination) layout.children().get(0);
-        var overwriteInput = (dev.voxelbrew.api.vui.CheckBox) layout.children().get(1);
+        var overwriteInput =
+                (dev.voxelbrew.api.model.vui.CheckBox) layout.children().get(1);
         var path = directory.resolve("new.txt");
 
         assertThat(((VerticalLayout) dialog.layout()).children().get(0)).isSameAs(destinationInput);
