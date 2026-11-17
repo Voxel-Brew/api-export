@@ -1,10 +1,6 @@
 package dev.voxelbrew.api.exporter.component;
 
-import static java.util.Objects.requireNonNull;
+import lombok.NonNull;
 
 /** Read-only text. */
-public record Label(String text) implements ExportDialogComponent {
-    public Label {
-        requireNonNull(text);
-    }
-}
+public record Label(@NonNull String text) implements ExportDialogComponent {}

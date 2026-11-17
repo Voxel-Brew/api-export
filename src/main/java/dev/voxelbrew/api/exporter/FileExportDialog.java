@@ -50,8 +50,8 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
      * @throws NullPointerException     if the title is null
      * @throws IllegalArgumentException if the extension is null, empty or contains invalid segments
      */
-    public FileExportDialog(String title, String extension) {
-        this.title = Objects.requireNonNull(title, "title");
+    public FileExportDialog(@lombok.NonNull String title, String extension) {
+        this.title = title;
         if (extension == null || !extension.matches("[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*"))
             throw new IllegalArgumentException("Invalid extension");
         this.extension = extension;

@@ -1,11 +1,6 @@
 package dev.voxelbrew.api.exporter.component;
 
-import static java.util.Objects.requireNonNull;
+import lombok.NonNull;
 
 /** A boolean option. */
-public record CheckBox(String id, String label, boolean selected) implements ExportDialogInput {
-    public CheckBox {
-        requireNonNull(id);
-        requireNonNull(label);
-    }
-}
+public record CheckBox(@NonNull String id, @NonNull String label, boolean selected) implements ExportDialogInput {}

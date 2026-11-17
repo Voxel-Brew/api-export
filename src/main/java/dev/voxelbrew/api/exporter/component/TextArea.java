@@ -1,12 +1,7 @@
 package dev.voxelbrew.api.exporter.component;
 
-import static java.util.Objects.requireNonNull;
+import lombok.NonNull;
 
 /** A multi-line editable value. */
-public record TextArea(String id, String label, String value) implements ExportDialogInput {
-    public TextArea {
-        requireNonNull(id);
-        requireNonNull(label);
-        requireNonNull(value);
-    }
-}
+public record TextArea(
+        @NonNull String id, @NonNull String label, @NonNull String value) implements ExportDialogInput {}
