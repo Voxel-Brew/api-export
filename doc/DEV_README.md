@@ -6,7 +6,7 @@ writes a text report containing selected document information. You can use the s
 public API for other file formats or remote destinations.
 
 The public types are in `dev.voxelbrew.api.exporter` and
-`dev.voxelbrew.api.vui`. The API stays independent of JavaFX, the CLI,
+`dev.voxelbrew.api.model.vui`. The API stays independent of JavaFX, the CLI,
 and VoxelBrew's native geometry engine. The Java excerpts below omit imports and
 package declarations for brevity.
 
