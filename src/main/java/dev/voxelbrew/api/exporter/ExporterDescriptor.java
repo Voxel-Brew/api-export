@@ -1,6 +1,6 @@
 package dev.voxelbrew.api.exporter;
 
-import java.util.Objects;
+import lombok.NonNull;
 
 /**
  * Immutable discovery metadata shared by file, model and remote-service exporters.
@@ -13,7 +13,8 @@ import java.util.Objects;
  * @param name nonblank display label used by the host, for example {@code Cloud model upload}
  * @param version nonblank version of the exporter implementation shown by the host
  */
-public record ExporterDescriptor(String id, String name, String version) {
+public record ExporterDescriptor(
+        String id, @NonNull String name, @NonNull String version) {
     /**
      * Creates and validates discovery metadata without normalizing either value.
      *
@@ -25,9 +26,7 @@ public record ExporterDescriptor(String id, String name, String version) {
      */
     public ExporterDescriptor {
         if (id == null || !id.matches("[a-z0-9][a-z0-9.-]*")) throw new IllegalArgumentException("Invalid exporter ID");
-        Objects.requireNonNull(name, "name");
         if (name.isBlank()) throw new IllegalArgumentException("Missing exporter name");
-        Objects.requireNonNull(version, "version");
         if (version.isBlank()) throw new IllegalArgumentException("Missing exporter version");
     }
 }
