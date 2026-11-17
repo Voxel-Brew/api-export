@@ -2,6 +2,8 @@ package dev.voxelbrew.api.exporter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -68,5 +70,33 @@ class ExporterProviderRegistryTest {
                     List.of("first", "second"),
                     registry.descriptors().stream().map(ExporterDescriptor::id).toList());
         }
+    }
+
+    @Test
+    void suppliedProviderWinsDuplicateIdAndDescriptorsAreReadOnly() throws Exception {
+        var supplied = new FirstProvider();
+        try (var registry = new ServiceLoaderExporterProviderRegistry(plugins, List.of(supplied))) {
+            assertSame(supplied, registry.require("first"));
+            assertEquals(
+                    List.of("first", "second"),
+                    registry.descriptors().stream().map(ExporterDescriptor::id).toList());
+            assertThrows(
+                    UnsupportedOperationException.class,
+                    () -> registry.descriptors().clear());
+            assertTrue(assertThrows(IllegalArgumentException.class, () -> registry.require("missing"))
+                    .getMessage()
+                    .contains("first"));
+        }
+    }
+
+    @Test
+    void rejectsNonDirectoryPluginPathAndCannotReconfigureAfterClose() throws Exception {
+        var file = Files.writeString(plugins.resolve("not-a-directory"), "contents");
+        assertThrows(IOException.class, () -> new ServiceLoaderExporterProviderRegistry(file));
+
+        var registry = new ServiceLoaderExporterProviderRegistry();
+        registry.close();
+        assertDoesNotThrow(registry::close);
+        assertThrows(IllegalStateException.class, () -> registry.withDirectory(plugins));
     }
 }
