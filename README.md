@@ -31,7 +31,44 @@ components such as `CheckBox` and `FileDestination`. The host renders them in Ja
 resolves them from CLI arguments. The exporter owns conversion, destination validation,
 and publication.
 
-![Provider discovery and export flow](doc/img/export-flow.svg)
+### Provider discovery and export flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Host as VoxelBrew host (GUI or CLI)
+    participant Registry as ExporterProviderRegistry
+    participant Provider as ExporterProvider
+    participant Exporter
+    participant Window as ExportWindow
+    participant Worker as Host worker
+
+    User->>Host: Select exporter ID
+    Host->>Registry: require(id)
+    Registry-->>Host: provider
+    Host->>Provider: create(pluginDirectory)
+    Provider-->>Host: exporter
+    Host->>Worker: Run export(document, window)
+    Worker->>Exporter: export(document, window)
+    Exporter->>Window: show(dialog)
+    Window->>Host: Dispatch dialog to UI thread
+    Host->>User: Render layout / request values
+    alt Cancelled
+        User-->>Host: Dismiss
+        Host-->>Window: Optional.empty()
+        Window-->>Exporter: Optional.empty()
+        Exporter-->>Worker: Optional.empty()
+        Worker-->>Host: cancelled
+    else Accepted
+        User-->>Host: Confirm values
+        Host-->>Window: accepted values
+        Window->>Window: buildSettings(values)
+        Window-->>Exporter: accepted settings
+        Exporter->>Exporter: Convert and publish
+        Exporter-->>Worker: Optional.of(settings) or exception
+        Worker-->>Host: completed or failed
+    end
+```
 
 ## Start developing
 

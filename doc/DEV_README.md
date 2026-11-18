@@ -10,7 +10,7 @@ The public types are in `dev.voxelbrew.api.exporter` and
 and VoxelBrew's native geometry engine. The Java excerpts below omit imports and
 package declarations for brevity.
 
-![Provider discovery and export flow](img/export-flow.svg)
+See the [provider discovery and export flow](../README.md#provider-discovery-and-export-flow).
 
 ## 1. Add the API dependency
 
