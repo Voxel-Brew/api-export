@@ -84,3 +84,9 @@ example, dialog inputs, export execution, CLI usage, packaging, and validation.
 ## License
 
 The Export API is licensed under the [MIT License](LICENSE).
+
+## SpotBugs
+
+For a standalone checkout, set `VOXELBREW_BOM_DIR` to a VoxelBrew BOM checkout that
+contains `spotbugs-conventions`. The workspace and CI supply the convention automatically.
+Run `./gradlew spotbugsMain` directly or as part of `./gradlew check`.
