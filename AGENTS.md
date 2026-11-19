@@ -6,7 +6,7 @@ This repository contains the standalone VoxelBrew Export API. Public Java contra
 `src/main/java/dev/voxelbrew/api/exporter`. Version metadata belongs in `src/main/resources`. Unit tests use
 the nonstandard source root `src/test/test/java`; reserve `src/test/integrationTest` and
 `src/test/e2eTest` for their corresponding Gradle suites. Build logic is in `build.gradle.kts` and
-`gradle/*.gradle.kts`; quality configuration is under `config/quality`.
+`gradle/*.gradle.kts`; SpotBugs configuration comes from the BOM checkout.
 
 Keep this module API-only. It may depend on `dev.voxelbrew.api:model`, but must not expose JavaFX,
 CLI, native engine, Protobuf, or dependency-injection implementation types. Exporter
@@ -41,6 +41,12 @@ implementation details. Name test classes `*Test` and methods after observable b
 `unsupportedDialogsAndDuplicateHandlersFailExplicitly`. Add unit coverage for contract behavior and
 integration coverage for service discovery or external consumption. No numeric coverage threshold
 is configured; test success, cancellation, invalid input, and failure propagation.
+
+## Pre-commit SpotBugs
+
+Before committing, run `./gradlew spotbugsMain` from this API repository or
+`./gradlew :export:spotbugsMain` from the composite workspace.
+Use `.\gradlew.bat` in place of `./gradlew` on Windows.
 
 ## Commit & Pull Request Guidelines
 
