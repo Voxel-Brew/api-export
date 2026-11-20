@@ -19,13 +19,22 @@ class ExportDialogTest {
     private java.util.Locale previousDisplayLocale;
 
     @Test
+    void returnsTheKeyWhenTheHostHasNoTranslation() {
+        var dialog = new FileExportDialog("Test", "vxb", new TestTranslationService(Map.of()));
+        assertThat(dialog.validate(Map.of())).containsEntry("destination", "api.export.destination.choose");
+        assertThatThrownBy(() -> dialog.buildSettings(Map.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("api.export.destination.choose");
+    }
+
+    @Test
     void standaloneApiLocalizesValidationInPolish() {
         java.util.Locale.setDefault(java.util.Locale.Category.DISPLAY, java.util.Locale.forLanguageTag("pl"));
         var dialog = new FileExportDialog("Export", "vxb");
         assertThat(dialog.validate(Map.of())).containsEntry("destination", "Wybierz miejsce docelowe");
         assertThatThrownBy(() -> dialog.buildSettings(Map.of()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Choose a destination");
+                .hasMessage("Wybierz miejsce docelowe");
         assertThatThrownBy(() -> new ExporterDescriptor("invalid id", "Export", "1"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid exporter ID");
