@@ -140,8 +140,9 @@ public final class ServiceLoaderExporterProviderRegistry implements ExporterProv
 
     private void register(ExporterProvider<?> provider) {
         var descriptor = Objects.requireNonNull(provider.descriptor(), "descriptor");
-        if (entries.putIfAbsent(descriptor.id(), provider) != null)
+        if (entries.putIfAbsent(descriptor.id(), provider) != null) {
             log.warn("Duplicate exporter ID: {}", descriptor.id());
+        }
     }
 
     @Override
@@ -155,8 +156,9 @@ public final class ServiceLoaderExporterProviderRegistry implements ExporterProv
     @Override
     public synchronized ExporterProvider<?> require(String id) {
         var provider = entries.get(id);
-        if (provider == null)
+        if (provider == null) {
             throw new IllegalArgumentException("Unknown exporter '" + id + "'. Available: " + entries.keySet());
+        }
         return provider;
     }
 
@@ -170,7 +172,9 @@ public final class ServiceLoaderExporterProviderRegistry implements ExporterProv
                 loader.close();
             } catch (IOException error) {
                 if (failure == null) failure = error;
-                else failure.addSuppressed(error);
+                else {
+                    failure.addSuppressed(error);
+                }
             }
         }
         if (failure != null) throw failure;

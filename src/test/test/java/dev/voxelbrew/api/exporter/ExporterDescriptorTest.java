@@ -17,9 +17,10 @@ class ExporterDescriptorTest {
 
     @Test
     void rejectsInvalidDiscoveryMetadataWithoutChangingValidValues() {
-        for (String id : java.util.List.of("", "Bad", "has space", "_hidden"))
+        for (String id : java.util.List.of("", "Bad", "has space", "_hidden")) {
             assertThatThrownBy(() -> new ExporterDescriptor(id, "Example", "1.0"))
                     .isInstanceOf(IllegalArgumentException.class);
+        }
         assertThatThrownBy(() -> new ExporterDescriptor("example", " ", "1.0"))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new ExporterDescriptor("example", null, "1.0"))
