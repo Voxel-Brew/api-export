@@ -97,8 +97,9 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
             @lombok.NonNull String title, String extension, @lombok.NonNull TranslationService translations) {
         this.translations = translations;
         this.title = title;
-        if (extension == null || !extension.matches("[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*"))
+        if (extension == null || !extension.matches("[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*")) {
             throw new IllegalArgumentException("Invalid extension");
+        }
         this.extension = extension;
         this.destinationInput = new FileDestination("destination", extension);
         this.overwriteInput = new CheckBox("overwrite", message("api.export.overwrite"), false);
