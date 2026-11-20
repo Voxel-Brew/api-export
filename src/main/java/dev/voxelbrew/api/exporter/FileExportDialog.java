@@ -43,6 +43,29 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
     private final CheckBox overwriteInput;
 
     /**
+     * Accepted file destination and replacement policy.
+     *
+     * <p>The path is retained as supplied, without normalization, extension insertion or existence
+     * checks. Consent to overwrite permits replacement; it does not require the file to exist.
+     * Exporters remain responsible for safe publication and preserving existing data on failure.
+     *
+     * @param path      output path, which may be relative
+     * @param overwrite whether replacing an existing output is authorized
+     */
+    public record Destination(Path path, boolean overwrite) {
+        /**
+         * Creates destination settings without accessing the filesystem.
+         *
+         * @param path      output path, retained unchanged
+         * @param overwrite whether replacement is authorized
+         * @throws NullPointerException if the path is null
+         */
+        public Destination {
+            Objects.requireNonNull(path, "path");
+        }
+    }
+
+    /**
      * Creates a file request; no filesystem access or dialog interaction occurs here.
      *
      * @param title     title for the host's file interaction
@@ -106,28 +129,5 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
         var path = values.get(destinationInput.id());
         var overwrite = values.getOrDefault(overwriteInput.id(), Boolean.toString(overwriteInput.selected()));
         return new Destination(Path.of(path), Boolean.parseBoolean(overwrite));
-    }
-
-    /**
-     * Accepted file destination and replacement policy.
-     *
-     * <p>The path is retained as supplied, without normalization, extension insertion or existence
-     * checks. Consent to overwrite permits replacement; it does not require the file to exist.
-     * Exporters remain responsible for safe publication and preserving existing data on failure.
-     *
-     * @param path      output path, which may be relative
-     * @param overwrite whether replacing an existing output is authorized
-     */
-    public record Destination(Path path, boolean overwrite) {
-        /**
-         * Creates destination settings without accessing the filesystem.
-         *
-         * @param path      output path, retained unchanged
-         * @param overwrite whether replacement is authorized
-         * @throws NullPointerException if the path is null
-         */
-        public Destination {
-            Objects.requireNonNull(path, "path");
-        }
     }
 }

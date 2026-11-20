@@ -33,6 +33,11 @@ UTF-8, four-space Java indentation, `UpperCamelCase` types, `lowerCamelCase` mem
 package names. Compilation uses `-Xlint:all -Werror`, so resolve every warning. Preserve public API
 compatibility deliberately and document behavioral contracts with concise Javadoc.
 
+Run `./gradlew checkJavaMemberOrder` to check Java source declaration order. The `check` and
+`build` tasks include it. Within each class, start with static final fields, then other static fields,
+final instance fields, other instance fields, static nested types, inner classes, static methods,
+constructors, and instance methods. Preserve Java initialization order when moving fields.
+
 ## Testing Guidelines
 
 Tests use JUnit 5 for execution and AssertJ for assertions. Prefer `assertThat` and
