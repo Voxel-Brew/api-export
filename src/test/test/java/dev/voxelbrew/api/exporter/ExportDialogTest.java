@@ -16,6 +16,32 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class ExportDialogTest {
+    private java.util.Locale previousDisplayLocale;
+
+    @Test
+    void standaloneApiLocalizesValidationInPolish() {
+        java.util.Locale.setDefault(java.util.Locale.Category.DISPLAY, java.util.Locale.forLanguageTag("pl"));
+        var dialog = new FileExportDialog("Export", "vxb");
+        assertThat(dialog.validate(Map.of())).containsEntry("destination", "Wybierz miejsce docelowe");
+        assertThatThrownBy(() -> dialog.buildSettings(Map.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Choose a destination");
+        assertThatThrownBy(() -> new ExporterDescriptor("invalid id", "Export", "1"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Invalid exporter ID");
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void selectEnglishForExpectedMessages() {
+        previousDisplayLocale = java.util.Locale.getDefault(java.util.Locale.Category.DISPLAY);
+        java.util.Locale.setDefault(java.util.Locale.Category.DISPLAY, java.util.Locale.ENGLISH);
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void restoreDisplayLocale() {
+        java.util.Locale.setDefault(java.util.Locale.Category.DISPLAY, previousDisplayLocale);
+    }
+
     @Test
     void dialogDescribesItsInputs() {
         var layout = new VerticalLayout(

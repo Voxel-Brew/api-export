@@ -1,14 +1,20 @@
 package dev.voxelbrew.api.exporter;
 
+import dev.voxelbrew.api.i18n.TranslationService;
 import dev.voxelbrew.api.model.vui.CheckBox;
 import dev.voxelbrew.api.model.vui.FileDestination;
 import dev.voxelbrew.api.model.vui.Layout;
 import dev.voxelbrew.api.model.vui.VerticalLayout;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.ServiceLoader;
 import lombok.Getter;
 
 /**
@@ -21,6 +27,8 @@ import lombok.Getter;
  */
 @lombok.experimental.Accessors(fluent = true)
 public final class FileExportDialog implements ExportDialog<FileExportDialog.Destination> {
+    private final Optional<TranslationService> translations;
+
     /**
      * Title shown by a file chooser or prompt.
      *
@@ -28,6 +36,7 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
      */
     @Getter
     private final String title;
+
     /**
      * Suggested filename extension and host filter, without a leading dot.
      *
@@ -74,12 +83,39 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
      * @throws IllegalArgumentException if the extension is null, empty or contains invalid segments
      */
     public FileExportDialog(@lombok.NonNull String title, String extension) {
+        this(
+                title,
+                extension,
+                ServiceLoader.load(TranslationService.class, TranslationService.class.getClassLoader())
+                        .findFirst());
+    }
+
+    /** Creates a file request using the host's translation service. */
+    public FileExportDialog(@lombok.NonNull String title, String extension, TranslationService translations) {
+        this(title, extension, Optional.of(translations));
+    }
+
+    private FileExportDialog(
+            @lombok.NonNull String title, String extension, Optional<TranslationService> translations) {
+        this.translations = translations;
         this.title = title;
         if (extension == null || !extension.matches("[a-zA-Z0-9]+(?:\\.[a-zA-Z0-9]+)*"))
             throw new IllegalArgumentException("Invalid extension");
         this.extension = extension;
         this.destinationInput = new FileDestination("destination", extension);
-        this.overwriteInput = new CheckBox("overwrite", "Overwrite", false);
+        this.overwriteInput = new CheckBox("overwrite", message(true, "api.export.overwrite"), false);
+    }
+
+    private String message(boolean localize, String key, Object... arguments) {
+        if (localize) {
+            var translated = translations.flatMap(service -> service.translate(key, arguments));
+            if (translated.isPresent()) return translated.get();
+        }
+        var display = Locale.getDefault(Locale.Category.DISPLAY);
+        var locale = localize && display.getLanguage().equals("pl") ? Locale.forLanguageTag("pl") : Locale.ENGLISH;
+        String pattern = ResourceBundle.getBundle("dev.voxelbrew.api.exporter.messages", locale)
+                .getString(key);
+        return arguments.length == 0 ? pattern : new MessageFormat(pattern, locale).format(arguments);
     }
 
     @Override
@@ -89,34 +125,40 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
 
     @Override
     public Map<String, String> validate(Map<String, String> values) {
+        return validate(values, true);
+    }
+
+    private Map<String, String> validate(Map<String, String> values, boolean localize) {
         var errors = new LinkedHashMap<String, String>();
 
         var overwrite = values.getOrDefault(overwriteInput.id(), Boolean.toString(overwriteInput.selected()));
         var path = values.get(destinationInput.id());
 
         if (path == null || path.isBlank()) {
-            errors.put(destinationInput.id(), "Choose a destination");
+            errors.put(destinationInput.id(), message(localize, "api.export.destination.choose"));
         } else {
             try {
                 var destination = Path.of(path);
                 var parent = destination.toAbsolutePath().normalize().getParent();
                 if (Files.isDirectory(destination)) {
-                    errors.put(destinationInput.id(), "Destination must be a file, not a directory");
+                    errors.put(destinationInput.id(), message(localize, "api.export.destination.file"));
                 } else if (parent == null || !Files.exists(parent)) {
-                    errors.put(destinationInput.id(), "Destination parent directory does not exist");
+                    errors.put(destinationInput.id(), message(localize, "api.export.destination.parent.missing"));
                 } else if (!Files.isDirectory(parent)) {
-                    errors.put(destinationInput.id(), "Destination parent must be a directory");
+                    errors.put(destinationInput.id(), message(localize, "api.export.destination.parent.directory"));
                 } else if (!Files.isWritable(parent)) {
-                    errors.put(destinationInput.id(), "Destination parent directory is not writable");
+                    errors.put(destinationInput.id(), message(localize, "api.export.destination.parent.writable"));
                 } else if ("false".equals(overwrite) && Files.exists(destination)) {
-                    errors.put(destinationInput.id(), "Destination already exists; enable Overwrite");
+                    errors.put(destinationInput.id(), message(localize, "api.export.destination.exists"));
                 }
             } catch (java.nio.file.InvalidPathException failure) {
-                errors.put(destinationInput.id(), "Invalid destination path: " + failure.getReason());
+                errors.put(
+                        destinationInput.id(),
+                        message(localize, "api.export.destination.invalid", failure.getReason()));
             }
         }
         if (!"true".equals(overwrite) && !"false".equals(overwrite)) {
-            errors.put(overwriteInput.id(), "Overwrite must be true or false");
+            errors.put(overwriteInput.id(), message(localize, "api.export.overwrite.boolean"));
         }
 
         return Map.copyOf(errors);
@@ -124,7 +166,7 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
 
     @Override
     public Destination buildSettings(Map<String, String> values) {
-        var errors = validate(values);
+        var errors = validate(values, false);
         if (!errors.isEmpty()) throw new IllegalArgumentException(String.join("; ", errors.values()));
         var path = values.get(destinationInput.id());
         var overwrite = values.getOrDefault(overwriteInput.id(), Boolean.toString(overwriteInput.selected()));
