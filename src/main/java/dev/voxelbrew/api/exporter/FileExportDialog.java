@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Standard request for a local output path and explicit overwrite consent.
@@ -22,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
  * request neither writes files nor reserves a destination: the exporter must validate the path,
  * honor overwrite consent even if another process creates a file later, and publish safely.
  */
-@Slf4j
 @lombok.experimental.Accessors(fluent = true)
 public final class FileExportDialog implements ExportDialog<FileExportDialog.Destination> {
     private final TranslationService translations;
@@ -106,10 +104,7 @@ public final class FileExportDialog implements ExportDialog<FileExportDialog.Des
     }
 
     private String message(String key, Object... arguments) {
-        return translations.translate(key, arguments).orElseGet(() -> {
-            log.warn("Missing translation for key {}", key);
-            return key;
-        });
+        return translations.translate(key, arguments);
     }
 
     @Override
