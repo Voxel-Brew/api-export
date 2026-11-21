@@ -19,12 +19,14 @@ class ExportDialogTest {
     private java.util.Locale previousDisplayLocale;
 
     @Test
-    void returnsTheKeyWhenTheHostHasNoTranslation() {
+    void returnsDiagnosticTextWhenTheHostHasNoTranslation() {
         var dialog = new FileExportDialog("Test", "vxb", new TestTranslationService(Map.of()));
-        assertThat(dialog.validate(Map.of())).containsEntry("destination", "api.export.destination.choose");
+        String expected =
+                java.util.Locale.getDefault(java.util.Locale.Category.DISPLAY) + ":api.export.destination.choose[]";
+        assertThat(dialog.validate(Map.of())).containsEntry("destination", expected);
         assertThatThrownBy(() -> dialog.buildSettings(Map.of()))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("api.export.destination.choose");
+                .hasMessage(expected);
     }
 
     @Test
