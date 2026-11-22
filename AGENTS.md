@@ -58,6 +58,9 @@ Use `.\gradlew.bat` in place of `./gradlew` on Windows.
 
 ## Commit & Pull Request Guidelines
 
+Prefer **Rebase and merge** for pull requests. Use **Squash and merge** only as an exception.
+The **Create a merge commit** option is blocked.
+
 Recent commits use short, imperative subjects, optionally prefixed by scope (`docs:`, `build:`,
 `ci:`). Keep commits focused. Pull requests should explain API and compatibility impact, link the
 relevant issue, list verification commands, and update README examples when contracts change.
