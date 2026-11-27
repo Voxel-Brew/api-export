@@ -71,6 +71,9 @@ relevant issue, list verification commands, and update README examples when cont
 Screenshots are only needed for documentation or rendered-output changes. Never commit generated
 `build/` output, credentials, signing material, or local plugin artifacts.
 
+When a commit addresses a known GitHub issue, include the issue number in the
+commit subject as the scope, for example `feat(#1337): foo boo bar baz`.
+
 When a pull request resolves a known GitHub issue, add `Closes #123` to the PR description,
 using the actual issue number. For an issue in another repository, use
 `Closes owner/repository#123`. Add the closing reference to the PR targeting
